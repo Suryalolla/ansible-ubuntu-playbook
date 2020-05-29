@@ -2,39 +2,39 @@
 - name: sample-tasks
   hosts: all
   tasks:
+  
+  - name: Update apt packages
+    apt: 
+      update_cache: "yes"
+      force_apt_get: "yes"
 
-  - name: Download container.io
-    get_url:
-      url: 'https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/containerd.io_1.2.6-3_amd64.deb'
-      dest: /tmp/
-    
-  - name: Download docker-ce-cli
-    get_url:
-      url: 'https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/docker-ce-cli_{{ docker_version }}~3-0~ubuntu-bionic_amd64.deb'
-      dest: /tmp/
-      
-  - name: Download docker-ce
-    get_url:
-      url: 'https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/docker-ce_{{ docker_version }}~3-0~ubuntu-bionic_amd64.deb'
-      dest: /tmp/
-
-  - name: Install docker-ce-cli
-    become: true
+  - name: Install packages needed for Docker
     apt:
-      deb: /tmp/docker-ce-cli_{{ docker_version }}~3-0~ubuntu-bionic_amd64.deb
+      name: "{{ DOCKER_PACKAGES }}"
+      state: present
+      force_apt_get: "yes" 
 
-  - name: Install docker-ce
-    become: true
+  - name: Add Docker GPG apt Key
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+
+  - name: Save the current Ubuntu release version into a variable
+    shell: lsb_release -cs
+    register: ubuntu_version
+
+  - name: Add Docker Repository
+    apt_repository:
+      repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ubuntu_version.stdout }} stable"
+      state: present
+
+  - name: Update apt packages
     apt:
-      deb: /tmp/docker-ce_{{ docker_version }}~3-0~ubuntu-bionic_amd64.deb
+      update_cache: "yes"
+      force_apt_get: "yes"
 
-  - name: Add to Docker group
-    become: true
-    user:
-      name: '{{ansible_user}}'
-      shell: /bin/bash
-      groups: docker
-      append: yes
-
-  - name: Start docker
-    service: name=docker state=started enabled=yes
+  - name: Install Docker
+    apt:
+      name: "docker-ce"
+      state: present
+      force_apt_get: "yes"
