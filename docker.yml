@@ -18,11 +18,6 @@
       url: 'https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/docker-ce_{{ docker_version }}~3-0~ubuntu-bionic_amd64.deb'
       dest: /tmp/
 
-  - name: Install container.io
-    become: true
-    apt:
-      deb: /tmp/containerd.io_1.2.6-3_amd64.deb
-
   - name: Install docker-ce-cli
     become: true
     apt:
